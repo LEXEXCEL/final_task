@@ -7,9 +7,13 @@ class ProductPage(BasePage):
         add_to_cart_button = self.browser.find_element(*ProductPageLocators.ADD_TO_CART_BUTTON_SELECTOR)
         add_to_cart_button.click()
 
+    def should_be_message_disappear_after_adding_product(self):
+        assert self.is_disappeared(*ProductPageLocators.SUCCESS_MESSAGE), \
+            "The message has not disappeared."
+
     def should_not_be_success_message(self):
         assert self.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
-            "Success message is presented, but should not be"
+            "The message presented product in the basket, but should not be"
 
     def should_be_correct_item_name(self):
         assert self.is_element_present(*ProductPageLocators.ITEM_NAME), \
