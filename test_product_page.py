@@ -1,9 +1,53 @@
 import pytest
+from time import time
+from math import pi as PI
 from .pages.basket_page import BasketPage
 from .pages.login_page import LoginPage
 from .pages.locators import ProductPageLocators
 from .pages.product_page import ProductPage
 from .pages.main_page import MainPage
+
+
+class TestUserAddToBasketFromProductPage:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, browser):
+        link = 'http://selenium1py.pythonanywhere.com/'
+
+        # Generating email and password
+        random_email = str(time()) + "@fakemail.org"
+        random_password = str(time() * PI)
+
+        # Registration user with generated email and password
+        register = LoginPage(browser, link)
+        register.open()
+        register.go_to_login_page()
+        register.register_new_user(random_email, random_password)
+
+        # Assertion
+        register.should_be_authorized_user()
+
+
+    def test_user_cant_see_success_message(self, browser):
+        link = 'http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer0'
+        page = MainPage(browser, link)
+        page.open()
+
+        product_page = ProductPage(browser, browser.current_url)
+
+        assert product_page.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
+            "The message presented product in the basket."
+
+    def test_user_can_add_product_to_basket(self, browser):
+        link = 'http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer0'
+        page = MainPage(browser, link)
+        page.open()
+
+        product_page = ProductPage(browser, browser.current_url)
+        product_page.add_to_cart()
+        product_page.solve_quiz_and_get_code()
+
+        product_page.should_be_correct_item_name()
+        product_page.should_be_correct_price()
 
 
 @pytest.mark.parametrize('link', [
@@ -44,8 +88,8 @@ def test_guest_cant_see_success_message_after_adding_product_to_basket(browser):
     product_page.add_to_cart()
     product_page.solve_quiz_and_get_code()
 
-    result = product_page.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE)
-    assert result is True, "The message presented after adding product to basket."
+    assert product_page.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
+        "The message presented after adding product to basket."
 
 
 def test_guest_cant_see_success_message(browser):
@@ -56,8 +100,8 @@ def test_guest_cant_see_success_message(browser):
 
     product_page = ProductPage(browser, browser.current_url)
 
-    result = product_page.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE)
-    assert result is True, "The message presented product in the basket."
+    assert product_page.is_not_element_present(*ProductPageLocators.SUCCESS_MESSAGE), \
+        "The message presented product in the basket."
 
 
 @pytest.mark.xfail
